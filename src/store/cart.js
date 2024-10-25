@@ -6,7 +6,7 @@ const getters = {
     getCart: state => {
         return Array.from(
             state.userCart, 
-            ([name, count]) => ({ name, count })
+            ([id, count]) => ({ id, count })
         );
     }
 }
@@ -22,6 +22,9 @@ const mutations = {
     }, 
     clearCart: state => {
         state.userCart.clear();
+    }, 
+    removeFromCart: (state, payload) => {
+        state.userCart.delete(payload);
     }
 }
 
@@ -31,6 +34,9 @@ const actions = {
     }, 
     pay: context => {
         context.commit('clearCart');
+    }, 
+    deleteFromCart: (context, payload) => {
+        context.commit('removeFromCart', payload);
     }
 }
 

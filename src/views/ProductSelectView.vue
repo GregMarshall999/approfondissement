@@ -24,7 +24,7 @@ const addToCart = index => {
     const product = store.getters['product/getProduct'](index);
 
     if(product) {
-        store.dispatch('cart/putInCart', product.name);
+        store.dispatch('cart/putInCart', product.id);
     }
 }
 </script>

@@ -30,11 +30,12 @@ const cart = computed(() => {
     const storeCart = store.getters['cart/getCart'];
 
     return storeCart.map(item => {
-        const cost = store.getters['product/findProductPrice'](item.name);
+        const prod = store.getters['product/getDisplayProduct'](item.id);
+
         return {
-            name: item.name, 
+            name: prod.name, 
             count: item.count, 
-            cost: cost*item.count
+            cost: prod.price*item.count
         }
     })
 })

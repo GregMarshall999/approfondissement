@@ -3,10 +3,10 @@
         <ProductComp 
             v-for="(element, elementIndex) in entities"
             @selected="emit('entitySelected', elementIndex)"
-            :slot-count="Object.keys(element).length"
+            :slot-count="Object.keys(element).length - 1"
         >
             <template 
-                v-for="(key, slotIndex) in Object.keys(element)"
+                v-for="(key, slotIndex) in noIdKeys(element)"
                 #[`field${slotIndex}`]
             >
                 <span :class="key">{{ parseSpanDisplay(element[key]) }}</span>
@@ -35,6 +35,13 @@ const props = defineProps({
 });
 
 const entities = computed(() => getEntityList());
+const noIdKeys = element => {
+    return Object.keys(element).map(e => {
+        if(e != 'id') {
+            return e;
+        }
+    });
+}
 
 const getEntityList = () => {
     switch(props.entityList) {

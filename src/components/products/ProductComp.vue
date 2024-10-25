@@ -3,7 +3,7 @@
         <slot 
             v-for="index in slotCount"
             :key="index" 
-            :name="`field${index-1}`"
+            :name="`field${index}`"
         ></slot>
         <slot></slot>
     </li>

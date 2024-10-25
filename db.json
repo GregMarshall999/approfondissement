@@ -1,0 +1,24 @@
+{
+  "products": [
+    {
+      "id": "3bfd",
+      "name": "Bananes",
+      "price": 1
+    },
+    {
+      "id": "9ce0",
+      "name": "Pommes",
+      "price": 2
+    },
+    {
+      "id": "0xa0",
+      "name": "Salade",
+      "price": 2
+    },
+    {
+      "id": "00a0",
+      "name": "Abricots",
+      "price": 1.33
+    }
+  ]
+}

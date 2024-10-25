@@ -4,8 +4,15 @@
 </template>
 
 <script setup>
+import { useStore } from 'vuex';
 import AdminProductView from './views/AdminProductView.vue';
 import ProductSelectView from './views/ProductSelectView.vue';
+import { onBeforeMount } from 'vue';
+
+const store = useStore();
+onBeforeMount(() => {
+  store.dispatch('product/loadProducts');
+});
 </script>
 
 <style scoped>

@@ -12,10 +12,10 @@
                 @selected="newProductMode = true"
                 :slot-count="2"
             >
-                <template #['field0']>
+                <template #['field1']>
                     <span class="name">Nouveau Produit</span>
                 </template>
-                <template #['field1']>
+                <template #['field2']>
                     <span class="price">+</span>
                 </template>
             </ProductComp>
@@ -53,7 +53,7 @@
                 </label>
 
                 <button @click="augmentPrice(4)">Augmenter Prix</button>
-                <button @click="reduicePrice">Réduire Prix</button>
+                <button @click="reduicePrice(1)">Réduire Prix</button>
             </div>
 
             <div class="product-editor">
@@ -80,8 +80,8 @@ const store = useStore();
 const augmentPrice = amount => {
     store.dispatch('product/augmentPrice', amount);
 }
-const reduicePrice = () => {
-    store.dispatch('product/reduicePrice');
+const reduicePrice = amount => {
+    store.dispatch('product/reduicePrice', amount);
 }
 
 const sales = ref(false);
@@ -90,38 +90,42 @@ const updateSales = () => {
 }
 
 const selectedProduct = reactive({
+    id: null,
     name: '', 
-    price: 0
+    price: null
 })
 const selectedIndex = ref(null);
 const selectProduct = index => {
     selectedIndex.value = index;
     const storeProd = store.getters['product/getProduct'](index);
 
+    selectedProduct.id = storeProd.id;
     selectedProduct.name = storeProd.name;
     selectedProduct.price = storeProd.price;
 }
 const updateProduct = () => {
     if(selectedIndex.value != null) {
-        store.dispatch('product/updateProduct', {
-            index: selectedIndex.value, 
-            product: {
+        store.dispatch('product/updateProduct', 
+            {
+                id: selectedProduct.id, 
                 name: selectedProduct.name, 
                 price: selectedProduct.price
             }
-        });
+        );
 
         selectedIndex.value = null;
+        selectedProduct.id = null;
         selectedProduct.name = '';
-        selectedProduct.price = 0;
+        selectedProduct.price = null;
     }
 }
 const deleteProduct = () => {
     if(selectedIndex.value) {
-        store.dispatch('product/removeProduct', selectedIndex.value);
+        store.dispatch('product/removeProduct', selectedProduct.id);
         selectedIndex.value = null
+        selectedProduct.id = null;
         selectedProduct.name = '';
-        selectedProduct.price = 0;
+        selectedProduct.price = null;
     }
 }
 
