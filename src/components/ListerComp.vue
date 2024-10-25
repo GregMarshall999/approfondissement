@@ -12,13 +12,14 @@
                 <span :class="key">{{ parseSpanDisplay(element[key]) }}</span>
             </template>
         </ProductComp>
+        <slot></slot>
     </ul>
 </template>
 
 <script setup>
 import { computed } from 'vue';
 import { useStore } from 'vuex';
-import ProductComp from './ProductComp.vue';
+import ProductComp from './products/ProductComp.vue';
 
 const store = useStore();
 
@@ -38,7 +39,7 @@ const entities = computed(() => getEntityList());
 const getEntityList = () => {
     switch(props.entityList) {
         case 'product': 
-            return store.getters.getProducts
+            return store.getters['product/getProducts']
         default: 
             return [];
     }
@@ -60,7 +61,7 @@ const emit = defineEmits(['entitySelected']);
 
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
 @import '../scss/ProductStyle.scss';
 
 .admin {

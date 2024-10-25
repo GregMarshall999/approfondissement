@@ -10,7 +10,7 @@ export const parseHalfPrice = price => {
             return val;
         }
 
-        return precision.toString();
+        return Number(precision);
     }
 
     return hp;

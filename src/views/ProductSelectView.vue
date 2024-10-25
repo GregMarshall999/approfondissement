@@ -2,12 +2,31 @@
     <div class="viewer">
         <h2>Produits disponibles</h2>
 
-        <ListerComp :entity-list="'product'"/>
+        <div style="display: flex; gap: 10%;">
+            <ListerComp
+                style="width: 50%;" 
+                :entity-list="'product'"
+                @entity-selected="addToCart"
+            />
+            <UserCartComp/>
+        </div>
     </div>
 </template>
 
 <script setup>
+import UserCartComp from '@/components/cart/UserCartComp.vue';
 import ListerComp from '@/components/ListerComp.vue';
+import { useStore } from 'vuex';
+
+const store = useStore();
+
+const addToCart = index => {
+    const product = store.getters['product/getProduct'](index);
+
+    if(product) {
+        store.dispatch('cart/putInCart', product.name);
+    }
+}
 </script>
 
 <style>

@@ -6,7 +6,37 @@
             :entity-list="'product'"
             :is-admin="true"
             @entity-selected="selectProduct"
-        />
+        >
+            <ProductComp 
+                v-if="!newProductMode"
+                @selected="newProductMode = true"
+                :slot-count="2"
+            >
+                <template #['field0']>
+                    <span class="name">Nouveau Produit</span>
+                </template>
+                <template #['field1']>
+                    <span class="price">+</span>
+                </template>
+            </ProductComp>
+            <li v-else>
+                <form @submit.prevent="newProduct">
+                    <input 
+                        type="text" 
+                        placeholder="Nom Produit..." 
+                        required
+                        v-model="product.name"
+                    />
+                    <input 
+                        type="number" 
+                        placeholder="Prix Produit..." 
+                        required
+                        v-model="product.price"
+                    />
+                    <button type="submit">Ajouter</button>
+                </form>
+            </li>
+        </ListerComp>
 
         <div class="admin-tools">
             <div class="admin-controls">
@@ -41,21 +71,22 @@
 
 <script setup>
 import ListerComp from '@/components/ListerComp.vue';
+import ProductComp from '@/components/products/ProductComp.vue';
 import { reactive, ref } from 'vue';
 import { useStore } from 'vuex';
 
 const store = useStore();
 
 const augmentPrice = amount => {
-    store.dispatch('augmentPrice', amount);
+    store.dispatch('product/augmentPrice', amount);
 }
 const reduicePrice = () => {
-    store.dispatch('reduicePrice');
+    store.dispatch('product/reduicePrice');
 }
 
 const sales = ref(false);
 const updateSales = () => {
-    store.dispatch('updateSales', sales.value);
+    store.dispatch('product/updateSales', sales.value);
 }
 
 const selectedProduct = reactive({
@@ -65,14 +96,14 @@ const selectedProduct = reactive({
 const selectedIndex = ref(null);
 const selectProduct = index => {
     selectedIndex.value = index;
-    const storeProd = store.getters.getProduct(index);
+    const storeProd = store.getters['product/getProduct'](index);
 
     selectedProduct.name = storeProd.name;
     selectedProduct.price = storeProd.price;
 }
 const updateProduct = () => {
-    if(selectedIndex.value) {
-        store.dispatch('updateProduct', {
+    if(selectedIndex.value != null) {
+        store.dispatch('product/updateProduct', {
             index: selectedIndex.value, 
             product: {
                 name: selectedProduct.name, 
@@ -87,11 +118,24 @@ const updateProduct = () => {
 }
 const deleteProduct = () => {
     if(selectedIndex.value) {
-        store.dispatch('removeProduct', selectedIndex.value);
+        store.dispatch('product/removeProduct', selectedIndex.value);
         selectedIndex.value = null
         selectedProduct.name = '';
         selectedProduct.price = 0;
     }
+}
+
+const newProductMode = ref(false);
+const product = reactive({
+    name: null, 
+    price: null
+});
+const newProduct = () => {
+    const nProd = { ...product }
+    store.dispatch('product/addProduct', nProd);
+    newProductMode.value = false;
+    product.name = null;
+    product.price = null;
 }
 </script>
 
@@ -109,57 +153,78 @@ const deleteProduct = () => {
         margin-top: 1em;
         padding: 20px;
         display: flex;
-        flex-direction: column;
-        gap: 1em;
+        gap: 10%;
 
-        .sales-toggle {
-            display: block;
-            position: relative;
-            padding-left: 35px;
-            margin-bottom: 12px;
-            cursor: pointer;
-            font-size: 16px;
+        .admin-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 1em;
+            border-right: solid 2px rgb(105, 105, 105);
+            padding-right: 10%;
 
-            input {
-                position: absolute;
-                opacity: 0;
+            .sales-toggle {
+                display: block;
+                position: relative;
+                padding-left: 35px;
+                margin-bottom: 12px;
                 cursor: pointer;
-                height: 0;
-                width: 0;
-            }
+                font-size: 16px;
 
-            .checkmark {
-                position: absolute;
-                top: 0;
-                left: 0;
-                height: 25px;
-                width: 25px;
-                background-color: #eee;
-            }
+                input {
+                    position: absolute;
+                    opacity: 0;
+                    cursor: pointer;
+                    height: 0;
+                    width: 0;
+                }
 
-            .checkmark:after {
-                content: "";
-                position: absolute;
-                display: none;
-                left: 9px;
-                top: 5px;
-                width: 5px;
-                height: 10px;
-                border: solid white;
-                border-width: 0 3px 3px 0;
-                transform: rotate(45deg);
+                .checkmark {
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    height: 25px;
+                    width: 25px;
+                    background-color: #eee;
+                }
+
+                .checkmark:after {
+                    content: "";
+                    position: absolute;
+                    display: none;
+                    left: 9px;
+                    top: 5px;
+                    width: 5px;
+                    height: 10px;
+                    border: solid white;
+                    border-width: 0 3px 3px 0;
+                    transform: rotate(45deg);
+                }
+            }
+            .sales-toggle:hover input ~ .checkmark {
+                background-color: #ccc;
+            }
+            .sales-toggle input:checked ~ .checkmark {
+                background-color: #6b662a;
+            }
+            .sales-toggle input:checked ~ .checkmark:after {
+                display: block;
             }
         }
-        .sales-toggle:hover input ~ .checkmark {
-            background-color: #ccc;
-        }
-        .sales-toggle input:checked ~ .checkmark {
-            background-color: #6b662a;
-        }
-        .sales-toggle input:checked ~ .checkmark:after {
-            display: block;
-        }
 
+        .product-editor {
+            form {
+                display: flex;
+                flex-direction: column;
+                gap: 1em;
+                margin-bottom: 1em;
+                
+                input {
+                    border: none;
+                    font-size: 16px;
+                }
+            }
+        }
+        
         button {
             width: fit-content;
             padding: 10px;
