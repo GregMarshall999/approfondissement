@@ -1,5 +1,5 @@
 <template>
-    <div class="lister">
+    <div class="lister" id="notEdit" @click="disableEdit">
         <h2>Tableau de produits</h2>
 
         <ListerComp 
@@ -11,6 +11,7 @@
                 v-if="!newProductMode"
                 @selected="newProductMode = true"
                 :slot-count="2"
+                v-show="!editProductMode"
             >
                 <template #['field1']>
                     <span class="name">Nouveau Produit</span>
@@ -20,21 +21,12 @@
                 </template>
             </ProductComp>
             <li v-else>
-                <form @submit.prevent="newProduct">
-                    <input 
-                        type="text" 
-                        placeholder="Nom Produit..." 
-                        required
-                        v-model="product.name"
-                    />
-                    <input 
-                        type="number" 
-                        placeholder="Prix Produit..." 
-                        required
-                        v-model="product.price"
-                    />
-                    <button type="submit">Ajouter</button>
-                </form>
+                <FormComp
+                    :fields="formFields"
+                    :submitButtonText="'Ajouter'"
+                    @success="newProduct"
+                />
+                <button style="margin-top: 1em;" @click="newProductMode = false">Annuler</button>
             </li>
         </ListerComp>
 
@@ -56,13 +48,14 @@
                 <button @click="reduicePrice(1)">Réduire Prix</button>
             </div>
 
-            <div class="product-editor">
-                <form @submit.prevent="updateProduct">
-                    <h3>Editer un Produit</h3>
-                    <input type="text" v-model="selectedProduct.name" placeholder="Nom Produit" />
-                    <input type="number" v-model="selectedProduct.price" placeholder="Prix Produit" />
-                    <button type="submit">Editer</button>
-                </form>
+            <div class="product-editor" v-show="!newProductMode">
+                <h3 style="margin-bottom: 1em;">Editer un Produit</h3>
+
+                <FormComp
+                    :fields="formFields"
+                    :submitButtonText="'Editer'"
+                    @success="updateProduct"
+                />
                 <button @click="deleteProduct">Supprimer</button>
             </div>
         </div>
@@ -70,8 +63,10 @@
 </template>
 
 <script setup>
+import FormComp from '@/components/form/FormComp.vue';
 import ListerComp from '@/components/ListerComp.vue';
 import ProductComp from '@/components/products/ProductComp.vue';
+import { requiredDefined, requiredPositiveNumber, requiredText } from '@/helper/ValidationHelper';
 import { reactive, ref } from 'vue';
 import { useStore } from 'vuex';
 
@@ -96,27 +91,31 @@ const selectedProduct = reactive({
 })
 const selectedIndex = ref(null);
 const selectProduct = index => {
-    selectedIndex.value = index;
-    const storeProd = store.getters['product/getProduct'](index);
+    if(!newProductMode.value) {
+        editProductMode.value = true;
 
-    selectedProduct.id = storeProd.id;
-    selectedProduct.name = storeProd.name;
-    selectedProduct.price = storeProd.price;
+        selectedIndex.value = index;
+        const storeProd = store.getters['product/getProduct'](index);
+
+        selectedProduct.id = storeProd.id;
+        formFields[0].value = storeProd.name;
+        formFields[1].value = storeProd.price;
+    }
 }
-const updateProduct = () => {
+const updateProduct = result => {
     if(selectedIndex.value != null) {
         store.dispatch('product/updateProduct', 
             {
                 id: selectedProduct.id, 
-                name: selectedProduct.name, 
-                price: selectedProduct.price
+                name: result[0], 
+                price: result[1]
             }
         );
 
+        formFields.forEach(field => field.value = null);
+        editProductMode.value = false;
         selectedIndex.value = null;
         selectedProduct.id = null;
-        selectedProduct.name = '';
-        selectedProduct.price = null;
     }
 }
 const deleteProduct = () => {
@@ -124,26 +123,52 @@ const deleteProduct = () => {
         store.dispatch('product/removeProduct', selectedProduct.id);
         selectedIndex.value = null
         selectedProduct.id = null;
-        selectedProduct.name = '';
-        selectedProduct.price = null;
+        formFields.forEach(field => field.value = null);
+        editProductMode.value = false;
     }
 }
 
 const newProductMode = ref(false);
-const product = reactive({
-    name: null, 
-    price: null
-});
-const newProduct = () => {
-    const nProd = { ...product }
-    store.dispatch('product/addProduct', nProd);
+const editProductMode = ref(false);
+const newProduct = result => {
+    const product = {};
+    const keys = [ 'name', 'price' ];
+
+    for(var i = 0; i < result.length; i++) {
+        product[keys[i]] = result[i];
+    }
+
+    store.dispatch('product/addProduct', product);
+
+    formFields.forEach(field => field.value = null);
     newProductMode.value = false;
-    product.name = null;
-    product.price = null;
+}
+
+const formFields = reactive([
+    {
+        placeholder: 'Nom Produit...', 
+        type: 'text', 
+        value: null, 
+        rules: [requiredDefined, requiredText]
+    }, 
+    {
+        placeholder: 'Prix Produit...', 
+        type: 'number', 
+        value: null, 
+        rules: [requiredDefined, requiredPositiveNumber]
+    }
+]);
+
+const disableEdit = e => {
+    if(e.target.id == 'notEdit') {
+        editProductMode.value = false;
+        formFields.forEach(field => field.value = null);
+    }
 }
 </script>
 
-<style>
+<style lang="scss">
+@import '@/scss/GlobalStyle.scss';
 
 .lister {
     background: #6b662a;
@@ -229,13 +254,12 @@ const newProduct = () => {
             }
         }
         
-        button {
-            width: fit-content;
-            padding: 10px;
-            border-radius: 0;
-            border: none;
-        }
+        
     }
+}
+
+button {
+    @include button;
 }
 
 </style>
