@@ -30,7 +30,7 @@
             </li>
         </ListerComp>
 
-        <div class="admin-tools">
+        <div class="admin-tools" ref="adminMouse">
             <div class="admin-controls">
                 <h3>Contrôlles Admin</h3>
 
@@ -58,6 +58,8 @@
                 />
                 <button @click="deleteProduct">Supprimer</button>
             </div>
+
+            <p>x:{{ x }} | y:{{ y }}</p>
         </div>
     </div>
 </template>
@@ -66,8 +68,9 @@
 import FormComp from '@/components/form/FormComp.vue';
 import ListerComp from '@/components/ListerComp.vue';
 import ProductComp from '@/components/products/ProductComp.vue';
+import { useMouse } from '@/composables/mouse';
 import { requiredDefined, requiredPositiveNumber, requiredText } from '@/helper/ValidationHelper';
-import { reactive, ref } from 'vue';
+import { onMounted, reactive, ref } from 'vue';
 import { useStore } from 'vuex';
 
 const store = useStore();
@@ -165,6 +168,10 @@ const disableEdit = e => {
         formFields.forEach(field => field.value = null);
     }
 }
+
+onMounted(() => console.log('parent mounted'));
+const adminMouse = ref(null);
+const { x, y } = useMouse(adminMouse);
 </script>
 
 <style lang="scss">
